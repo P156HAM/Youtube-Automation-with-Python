@@ -1,0 +1,52 @@
+# Environment variables and secrets
+.env
+.env.local
+.env.*.local
+
+# API credentials
+state/client_secrets.json
+state/youtube_token.pickle
+state/*.pickle
+state/*.json
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+venv/
+ENV/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Temporary files
+renders/tmp/*
+!renders/tmp/.gitkeep
+
+# Jobs (optional - uncomment if you want to track jobs)
+# jobs/*.json
+
+# Logs
+*.log
+
