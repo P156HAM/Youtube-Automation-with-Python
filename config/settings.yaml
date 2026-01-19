@@ -3,8 +3,8 @@
 
 # OpenAI Configuration
 openai:
-  api_key: "${OPENAI_API_KEY}"  # Set via environment variable
-  model: "gpt-4"
+  api_key: "${OPENAI_API_KEY}" # Set via environment variable
+  model: "gpt-4o-mini" # Cost-effective model with JSON support
   max_tokens: 2000
   temperature: 0.8
 
@@ -19,50 +19,50 @@ story:
     - "online_dating"
   min_messages: 8
   max_messages: 15
-  humor_style: "absurd"  # Options: absurd, sarcastic, wholesome, chaotic
+  humor_style: "absurd" # Options: absurd, sarcastic, wholesome, chaotic
 
 # Discord UI Settings
 discord:
   theme: "dark"
   width: 1080
-  height: 1920  # 9:16 aspect ratio for Shorts
-  message_delay: 1.5  # seconds between messages
+  height: 1920 # 9:16 aspect ratio for Shorts
+  message_delay: 1.5 # seconds between messages
   colors:
     background: "#36393f"
     message_bg: "#40444b"
     text: "#dcddde"
     timestamp: "#72767d"
     username_colors:
-      - "#f47fff"  # Pink
-      - "#7289da"  # Blurple
-      - "#43b581"  # Green
-      - "#faa61a"  # Orange
-      - "#f04747"  # Red
-      - "#00d4aa"  # Teal
+      - "#f47fff" # Pink
+      - "#7289da" # Blurple
+      - "#43b581" # Green
+      - "#faa61a" # Orange
+      - "#f04747" # Red
+      - "#00d4aa" # Teal
 
 # Video Settings
 video:
   fps: 30
-  duration_min: 30  # seconds
-  duration_max: 59  # seconds (under 60 for Shorts)
+  duration_min: 30 # seconds
+  duration_max: 59 # seconds (under 60 for Shorts)
   codec: "libx264"
   audio_codec: "aac"
   bitrate: "8M"
   typing_animation: true
-  typing_duration: 0.8  # seconds
+  typing_duration: 0.8 # seconds
 
 # Audio Settings
 audio:
   background_music_volume: 0.15
   sfx_volume: 0.3
   notification_sound: true
-  fade_in: 1.0  # seconds
-  fade_out: 2.0  # seconds
+  fade_in: 1.0 # seconds
+  fade_out: 2.0 # seconds
 
 # YouTube Upload Settings
 youtube:
-  category_id: "23"  # Comedy
-  privacy_status: "public"  # Options: public, private, unlisted
+  category_id: "23" # Comedy
+  privacy_status: "public" # Options: public, private, unlisted
   tags:
     - "discord"
     - "funny"
@@ -73,9 +73,9 @@ youtube:
     - "comedy"
   default_description: |
     😂 Another wild Discord conversation!
-    
+
     Like and Subscribe for more chaos!
-    
+
     #Shorts #Discord #Funny #Reddit
 
 # Paths
@@ -89,4 +89,3 @@ paths:
   renders_final: "renders/final"
   jobs: "jobs"
   state: "state"
-

@@ -24,7 +24,6 @@ def test_render():
     """Test the rendering pipeline without API calls."""
     from src.generators.story_generator import Message, Story
     from src.renderers.discord_renderer import DiscordRenderer
-    from src.video.composer import VideoComposer
     
     print("🧪 Running test render...")
     

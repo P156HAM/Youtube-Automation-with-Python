@@ -180,17 +180,28 @@ Return ONLY the JSON, no other text or markdown."""
             max_msgs = self.config.get('story.max_messages', 15)
             num_messages = random.randint(min_msgs, max_msgs)
         
-        # Generate story using GPT-4
-        response = self.client.chat.completions.create(
-            model=self.config.openai_model,
-            messages=[
+        # Generate story using OpenAI
+        model = self.config.openai_model
+        
+        # Models that support JSON response format
+        json_supported_models = ['gpt-4o', 'gpt-4o-mini', 'gpt-4-turbo', 'gpt-4-turbo-preview', 
+                                  'gpt-3.5-turbo-1106', 'gpt-3.5-turbo-0125']
+        
+        request_params = {
+            "model": model,
+            "messages": [
                 {"role": "system", "content": self._get_system_prompt()},
                 {"role": "user", "content": self._get_generation_prompt(theme, num_messages)}
             ],
-            max_tokens=self.config.get('openai.max_tokens', 2000),
-            temperature=self.config.get('openai.temperature', 0.8),
-            response_format={"type": "json_object"}
-        )
+            "max_tokens": self.config.get('openai.max_tokens', 2000),
+            "temperature": self.config.get('openai.temperature', 0.8),
+        }
+        
+        # Only add response_format for supported models
+        if any(supported in model for supported in json_supported_models):
+            request_params["response_format"] = {"type": "json_object"}
+        
+        response = self.client.chat.completions.create(**request_params)
         
         # Parse response
         content = response.choices[0].message.content

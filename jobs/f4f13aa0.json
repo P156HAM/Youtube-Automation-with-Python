@@ -1,0 +1,12 @@
+{
+  "id": "f4f13aa0",
+  "theme": "AITA",
+  "status": "failed",
+  "story": null,
+  "video_path": null,
+  "thumbnail_path": null,
+  "youtube_id": null,
+  "error": "Error code: 400 - {'error': {'message': \"Invalid parameter: 'response_format' of type 'json_object' is not supported with this model.\", 'type': 'invalid_request_error', 'param': 'response_format', 'code': None}}",
+  "created_at": "2026-01-19T15:37:07.070390",
+  "completed_at": null
+}

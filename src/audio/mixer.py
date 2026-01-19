@@ -3,7 +3,7 @@
 import os
 import random
 from pathlib import Path
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Union
 
 from pydub import AudioSegment
 from pydub.effects import normalize
@@ -85,7 +85,7 @@ class AudioMixer:
         
         return None
     
-    def load_audio(self, path: str | Path) -> AudioSegment:
+    def load_audio(self, path: Union[str, Path]) -> AudioSegment:
         """
         Load an audio file.
         
@@ -103,7 +103,7 @@ class AudioMixer:
     
     def prepare_background_music(
         self,
-        music_path: str | Path,
+        music_path: Union[str, Path],
         duration_ms: int,
         volume: Optional[float] = None
     ) -> AudioSegment:
@@ -144,7 +144,7 @@ class AudioMixer:
     
     def create_sfx_track(
         self,
-        sfx_path: str | Path,
+        sfx_path: Union[str, Path],
         timestamps_ms: List[int],
         total_duration_ms: int,
         volume: Optional[float] = None
@@ -218,9 +218,9 @@ class AudioMixer:
     def mix_for_video(
         self,
         duration_ms: int,
-        music_path: Optional[str | Path] = None,
+        music_path: Optional[Union[str, Path]] = None,
         sfx_timestamps_ms: Optional[List[int]] = None,
-        output_path: Optional[str | Path] = None
+        output_path: Optional[Union[str, Path]] = None
     ) -> Tuple[AudioSegment, Optional[str]]:
         """
         Create a complete audio mix for a video.

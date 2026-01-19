@@ -5,7 +5,8 @@ import shutil
 from pathlib import Path
 from typing import List, Optional, Tuple
 
-from moviepy.editor import (
+# MoviePy 2.x imports
+from moviepy import (
     AudioFileClip,
     ColorClip,
     CompositeVideoClip,
@@ -13,6 +14,7 @@ from moviepy.editor import (
     ImageSequenceClip,
     concatenate_videoclips,
 )
+from moviepy.audio.fx import AudioFadeIn, AudioFadeOut, MultiplyVolume
 
 from ..config import get_config
 from ..generators.story_generator import Story
@@ -100,7 +102,8 @@ class VideoComposer:
             is_typing = 'typing' in os.path.basename(frame_path)
             duration = typing_duration if is_typing else message_duration
             
-            clip = ImageClip(frame_path).set_duration(duration)
+            # MoviePy 2.x uses with_duration instead of set_duration
+            clip = ImageClip(frame_path, duration=duration)
             clips.append(clip)
         
         # Concatenate all clips
@@ -110,22 +113,30 @@ class VideoComposer:
         if audio_path and os.path.exists(audio_path):
             audio = AudioFileClip(audio_path)
             
-            # Loop audio if shorter than video
+            # Trim or loop audio to match video duration
             if audio.duration < video.duration:
-                audio = audio.loop(duration=video.duration)
-            else:
-                audio = audio.subclip(0, video.duration)
+                # Loop by concatenating
+                loops_needed = int(video.duration / audio.duration) + 1
+                audio_clips = [audio] * loops_needed
+                from moviepy import concatenate_audioclips
+                audio = concatenate_audioclips(audio_clips)
             
-            # Apply fade in/out
+            # Trim to video duration (MoviePy 2.x uses subclipped)
+            audio = audio.subclipped(0, video.duration)
+            
+            # Apply fade in/out and volume (MoviePy 2.x uses with_effects)
             fade_in = self.config.get('audio.fade_in', 1.0)
             fade_out = self.config.get('audio.fade_out', 2.0)
-            audio = audio.audio_fadein(fade_in).audio_fadeout(fade_out)
-            
-            # Set volume
             volume = self.config.get('audio.background_music_volume', 0.15)
-            audio = audio.volumex(volume)
             
-            video = video.set_audio(audio)
+            audio = audio.with_effects([
+                AudioFadeIn(fade_in),
+                AudioFadeOut(fade_out),
+                MultiplyVolume(volume)
+            ])
+            
+            # MoviePy 2.x uses with_audio
+            video = video.with_audio(audio)
         
         # Write output
         video.write_videofile(
@@ -135,13 +146,12 @@ class VideoComposer:
             audio_codec=self.config.get('video.audio_codec', 'aac'),
             bitrate=self.config.get('video.bitrate', '8M'),
             preset='medium',
-            threads=4
+            threads=4,
+            logger=None  # Suppress verbose output
         )
         
         # Clean up
         video.close()
-        if audio_path:
-            audio.close()
         
         return output_path
     
