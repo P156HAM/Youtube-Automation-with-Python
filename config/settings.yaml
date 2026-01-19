@@ -26,7 +26,7 @@ discord:
   theme: "dark"
   width: 1080
   height: 1920 # 9:16 aspect ratio for Shorts
-  message_delay: 1.5 # seconds between messages
+  message_delay: 2.5 # seconds between messages
   colors:
     background: "#36393f"
     message_bg: "#40444b"
@@ -49,7 +49,7 @@ video:
   audio_codec: "aac"
   bitrate: "8M"
   typing_animation: true
-  typing_duration: 0.8 # seconds
+  typing_duration: 1.2 # seconds
 
 # Audio Settings
 audio:

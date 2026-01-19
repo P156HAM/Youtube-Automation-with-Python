@@ -50,6 +50,10 @@ class DiscordRenderer:
         self.username_colors = self.config.get('discord.colors.username_colors', [
             "#f47fff", "#7289da", "#43b581", "#faa61a", "#f04747", "#00d4aa"
         ])
+        
+        # Load custom avatars from pool
+        self.avatar_pool = self._load_avatar_pool()
+        self.username_avatar_map = {}  # Cache: username -> avatar image
     
     def _get_font_path(self) -> Optional[str]:
         """Get path to a suitable font."""
@@ -72,6 +76,61 @@ class DiscordRenderer:
                 return font_path
         
         return None
+    
+    def _load_avatar_pool(self) -> List[Image.Image]:
+        """Load avatar images from the avatars folder."""
+        avatars = []
+        try:
+            avatars_dir = self.config.get_path('avatars')
+            if avatars_dir.exists():
+                # Look for avatar files (avatar_1.png, avatar_2.png, etc. or any image)
+                for ext in ['*.png', '*.jpg', '*.jpeg', '*.webp']:
+                    for avatar_path in sorted(avatars_dir.glob(ext)):
+                        # Skip README files
+                        if 'readme' in avatar_path.name.lower():
+                            continue
+                        try:
+                            img = Image.open(avatar_path).convert('RGBA')
+                            # Resize to avatar size
+                            img = img.resize((self.avatar_size, self.avatar_size), Image.Resampling.LANCZOS)
+                            # Make circular
+                            img = self._make_circular(img)
+                            avatars.append(img)
+                        except Exception:
+                            continue
+        except Exception:
+            pass
+        return avatars
+    
+    def _make_circular(self, img: Image.Image) -> Image.Image:
+        """Make an image circular with transparency."""
+        size = img.size[0]
+        mask = Image.new('L', (size, size), 0)
+        draw = ImageDraw.Draw(mask)
+        draw.ellipse([0, 0, size-1, size-1], fill=255)
+        
+        result = Image.new('RGBA', (size, size), (0, 0, 0, 0))
+        result.paste(img, (0, 0), mask)
+        return result
+    
+    def _get_avatar_for_user(self, username: str, color: str) -> Image.Image:
+        """Get an avatar for a username (from pool or generated)."""
+        # Check cache first
+        if username in self.username_avatar_map:
+            return self.username_avatar_map[username]
+        
+        # If we have custom avatars, assign one based on username hash
+        if self.avatar_pool:
+            # Use hash to consistently assign same avatar to same username
+            avatar_index = hash(username) % len(self.avatar_pool)
+            avatar = self.avatar_pool[avatar_index].copy()
+            self.username_avatar_map[username] = avatar
+            return avatar
+        
+        # Otherwise, generate a simple avatar with initials
+        avatar = self._generate_avatar(username, color, self.avatar_size)
+        self.username_avatar_map[username] = avatar
+        return avatar
     
     def _load_font(self, size: int, bold: bool = False) -> ImageFont.FreeTypeFont:
         """Load a font at the specified size."""
@@ -169,8 +228,8 @@ class DiscordRenderer:
         x_start = self.padding
         
         if show_avatar:
-            # Draw avatar
-            avatar = self._generate_avatar(message.username, message.avatar_color, self.avatar_size)
+            # Draw avatar (uses custom pool if available, otherwise generates)
+            avatar = self._get_avatar_for_user(message.username, message.avatar_color)
             img.paste(avatar, (x_start, y_position), avatar)
             
             # Draw username
