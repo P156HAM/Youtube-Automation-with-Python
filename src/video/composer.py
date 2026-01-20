@@ -5,6 +5,9 @@ import shutil
 from pathlib import Path
 from typing import List, Optional, Tuple
 
+import numpy as np
+from PIL import Image
+
 # MoviePy 2.x imports
 from moviepy import (
     AudioFileClip,
@@ -17,7 +20,7 @@ from moviepy import (
 from moviepy.audio.fx import AudioFadeIn, AudioFadeOut, MultiplyVolume
 
 from ..config import get_config
-from ..generators.story_generator import Story
+from ..generators.story_generator import Message, Story
 from ..renderers.discord_renderer import DiscordRenderer
 
 
