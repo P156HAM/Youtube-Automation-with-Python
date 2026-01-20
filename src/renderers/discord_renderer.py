@@ -1,27 +1,26 @@
-"""Discord-style conversation frame renderer."""
+"""Discord-style conversation frame renderer - Beluga Style."""
 
-import hashlib
 import math
 import os
-import textwrap
 from pathlib import Path
 from typing import List, Optional, Tuple
 
 from PIL import Image, ImageDraw, ImageFont
+from pilmoji import Pilmoji  # For emoji support
 
 from ..config import get_config
 from ..generators.story_generator import Message, Story
 
 
 class DiscordRenderer:
-    """Renders Discord-style conversation frames for video generation."""
+    """Renders Discord-style conversation frames - Beluga/viral style with BIG readable text."""
     
     # Discord dark theme colors
     COLORS = {
         'background': '#36393f',
         'message_hover': '#32353b',
-        'text': '#dcddde',
-        'text_muted': '#72767d',
+        'text': '#ffffff',  # Brighter white for better readability
+        'text_muted': '#8e9297',
         'divider': '#42454a',
         'channel_bg': '#2f3136',
         'input_bg': '#40444b',
@@ -33,18 +32,22 @@ class DiscordRenderer:
         self.width = self.config.get('discord.width', 1080)
         self.height = self.config.get('discord.height', 1920)
         
-        # Font settings
+        # Font settings - MUCH BIGGER for Beluga style
         self.font_path = self._get_font_path()
-        self.font_username = self._load_font(18, bold=True)
-        self.font_message = self._load_font(17)
-        self.font_timestamp = self._load_font(12)
-        self.font_reaction = self._load_font(14)
+        self.emoji_font_path = self._get_emoji_font_path()
         
-        # Layout settings
-        self.padding = 20
-        self.avatar_size = 48
-        self.message_spacing = 8
-        self.line_height = 24
+        # Beluga-style: BIG readable fonts
+        self.font_username = self._load_font(42, bold=True)
+        self.font_message = self._load_font(38)
+        self.font_timestamp = self._load_font(24)
+        self.font_reaction = self._load_font(36)
+        
+        # Layout settings - Beluga style (bigger everything)
+        self.padding = 40
+        self.avatar_size = 90  # Bigger avatars
+        self.message_spacing = 25
+        self.line_height = 50  # Bigger line height
+        self.max_visible_messages = 6  # Only show last N messages
         
         # Colors from config
         self.username_colors = self.config.get('discord.colors.username_colors', [
@@ -53,29 +56,52 @@ class DiscordRenderer:
         
         # Load custom avatars from pool
         self.avatar_pool = self._load_avatar_pool()
-        self.username_avatar_map = {}  # Cache: username -> avatar image
+        self.username_avatar_map = {}
     
     def _get_font_path(self) -> Optional[str]:
         """Get path to a suitable font."""
-        # Try to find a system font that looks good for Discord
         possible_fonts = [
-            # macOS
+            # macOS - prefer bold/semibold for readability
+            '/System/Library/Fonts/Supplemental/Arial Bold.ttf',
             '/System/Library/Fonts/Supplemental/Arial.ttf',
             '/System/Library/Fonts/SFNS.ttf',
             '/Library/Fonts/Arial.ttf',
             # Linux
+            '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf',
             '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',
-            '/usr/share/fonts/TTF/DejaVuSans.ttf',
             # Windows
+            'C:/Windows/Fonts/arialbd.ttf',
             'C:/Windows/Fonts/arial.ttf',
-            'C:/Windows/Fonts/segoeui.ttf',
         ]
         
         for font_path in possible_fonts:
             if os.path.exists(font_path):
                 return font_path
-        
         return None
+    
+    def _get_emoji_font_path(self) -> Optional[str]:
+        """Get path to emoji font."""
+        emoji_fonts = [
+            # macOS
+            '/System/Library/Fonts/Apple Color Emoji.ttc',
+            # Linux
+            '/usr/share/fonts/truetype/noto/NotoColorEmoji.ttf',
+            # Windows
+            'C:/Windows/Fonts/seguiemj.ttf',
+        ]
+        for path in emoji_fonts:
+            if os.path.exists(path):
+                return path
+        return None
+    
+    def _load_font(self, size: int, bold: bool = False) -> ImageFont.FreeTypeFont:
+        """Load a font at the specified size."""
+        try:
+            if self.font_path:
+                return ImageFont.truetype(self.font_path, size)
+        except Exception:
+            pass
+        return ImageFont.load_default()
     
     def _load_avatar_pool(self) -> List[Image.Image]:
         """Load avatar images from the avatars folder."""
@@ -83,17 +109,13 @@ class DiscordRenderer:
         try:
             avatars_dir = self.config.get_path('avatars')
             if avatars_dir.exists():
-                # Look for avatar files (avatar_1.png, avatar_2.png, etc. or any image)
                 for ext in ['*.png', '*.jpg', '*.jpeg', '*.webp']:
                     for avatar_path in sorted(avatars_dir.glob(ext)):
-                        # Skip README files
                         if 'readme' in avatar_path.name.lower():
                             continue
                         try:
                             img = Image.open(avatar_path).convert('RGBA')
-                            # Resize to avatar size
                             img = img.resize((self.avatar_size, self.avatar_size), Image.Resampling.LANCZOS)
-                            # Make circular
                             img = self._make_circular(img)
                             avatars.append(img)
                         except Exception:
@@ -108,56 +130,24 @@ class DiscordRenderer:
         mask = Image.new('L', (size, size), 0)
         draw = ImageDraw.Draw(mask)
         draw.ellipse([0, 0, size-1, size-1], fill=255)
-        
         result = Image.new('RGBA', (size, size), (0, 0, 0, 0))
         result.paste(img, (0, 0), mask)
         return result
-    
-    def _get_avatar_for_user(self, username: str, color: str) -> Image.Image:
-        """Get an avatar for a username (from pool or generated)."""
-        # Check cache first
-        if username in self.username_avatar_map:
-            return self.username_avatar_map[username]
-        
-        # If we have custom avatars, assign one based on username hash
-        if self.avatar_pool:
-            # Use hash to consistently assign same avatar to same username
-            avatar_index = hash(username) % len(self.avatar_pool)
-            avatar = self.avatar_pool[avatar_index].copy()
-            self.username_avatar_map[username] = avatar
-            return avatar
-        
-        # Otherwise, generate a simple avatar with initials
-        avatar = self._generate_avatar(username, color, self.avatar_size)
-        self.username_avatar_map[username] = avatar
-        return avatar
-    
-    def _load_font(self, size: int, bold: bool = False) -> ImageFont.FreeTypeFont:
-        """Load a font at the specified size."""
-        try:
-            if self.font_path:
-                return ImageFont.truetype(self.font_path, size)
-        except Exception:
-            pass
-        
-        # Fallback to default font
-        return ImageFont.load_default()
     
     def _hex_to_rgb(self, hex_color: str) -> Tuple[int, int, int]:
         """Convert hex color to RGB tuple."""
         hex_color = hex_color.lstrip('#')
         return tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
     
-    def _generate_avatar(self, username: str, color: str, size: int = 48) -> Image.Image:
-        """Generate a simple avatar with initials."""
+    def _generate_avatar(self, username: str, color: str, size: int = 90) -> Image.Image:
+        """Generate a simple avatar with initials - bigger for Beluga style."""
         avatar = Image.new('RGBA', (size, size), (0, 0, 0, 0))
         draw = ImageDraw.Draw(avatar)
         
-        # Draw circular background
         bg_color = self._hex_to_rgb(color)
         draw.ellipse([0, 0, size-1, size-1], fill=bg_color)
         
-        # Draw initials
+        # Get initials
         initials = ''.join(word[0].upper() for word in username.split()[:2])
         if len(initials) == 0:
             initials = username[0].upper() if username else '?'
@@ -169,15 +159,28 @@ class DiscordRenderer:
         except Exception:
             font = ImageFont.load_default()
         
-        # Center the text
         bbox = draw.textbbox((0, 0), initials, font=font)
         text_width = bbox[2] - bbox[0]
         text_height = bbox[3] - bbox[1]
         x = (size - text_width) // 2
-        y = (size - text_height) // 2 - 2
+        y = (size - text_height) // 2 - 4
         
         draw.text((x, y), initials, fill=(255, 255, 255), font=font)
+        return avatar
+    
+    def _get_avatar_for_user(self, username: str, color: str) -> Image.Image:
+        """Get an avatar for a username."""
+        if username in self.username_avatar_map:
+            return self.username_avatar_map[username]
         
+        if self.avatar_pool:
+            avatar_index = hash(username) % len(self.avatar_pool)
+            avatar = self.avatar_pool[avatar_index].copy()
+            self.username_avatar_map[username] = avatar
+            return avatar
+        
+        avatar = self._generate_avatar(username, color, self.avatar_size)
+        self.username_avatar_map[username] = avatar
         return avatar
     
     def _wrap_text(self, text: str, max_width: int) -> List[str]:
@@ -210,102 +213,85 @@ class DiscordRenderer:
         img: Image.Image,
         message: Message,
         y_position: int,
-        show_avatar: bool = True
+        show_avatar: bool = True,
+        is_latest: bool = False
     ) -> int:
-        """
-        Draw a single Discord message and return the height used.
-        
-        Args:
-            draw: ImageDraw instance
-            img: Image to draw on (for pasting avatar)
-            message: Message to draw
-            y_position: Y position to start drawing
-            show_avatar: Whether to show avatar (False for consecutive messages from same user)
-        
-        Returns:
-            Height of the drawn message
-        """
+        """Draw a single Discord message - Beluga style with BIG text and emoji support."""
         x_start = self.padding
         
+        # Highlight latest message with subtle background
+        if is_latest:
+            highlight_color = (64, 68, 75, 180)
+            draw.rectangle(
+                [0, y_position - 10, self.width, y_position + 200],
+                fill=highlight_color[:3]
+            )
+        
         if show_avatar:
-            # Draw avatar (uses custom pool if available, otherwise generates)
+            # Draw avatar
             avatar = self._get_avatar_for_user(message.username, message.avatar_color)
             img.paste(avatar, (x_start, y_position), avatar)
             
-            # Draw username
-            username_x = x_start + self.avatar_size + 12
+            # Draw username - BIG and colorful
+            username_x = x_start + self.avatar_size + 20
             username_color = self._hex_to_rgb(message.avatar_color)
             draw.text(
-                (username_x, y_position),
+                (username_x, y_position + 5),
                 message.username,
                 fill=username_color,
                 font=self.font_username
             )
             
-            # Draw timestamp
-            if message.timestamp:
-                timestamp_x = username_x + draw.textbbox(
-                    (0, 0), message.username, font=self.font_username
-                )[2] + 8
-                draw.text(
-                    (timestamp_x, y_position + 3),
-                    message.timestamp,
-                    fill=self._hex_to_rgb(self.COLORS['text_muted']),
-                    font=self.font_timestamp
-                )
-            
-            text_y = y_position + 24
+            text_y = y_position + 55
         else:
             text_y = y_position
         
-        # Draw message content
-        text_x = x_start + self.avatar_size + 12
-        max_text_width = self.width - text_x - self.padding - 20
+        # Draw message content with EMOJI SUPPORT using Pilmoji
+        text_x = x_start + self.avatar_size + 20
+        max_text_width = self.width - text_x - self.padding - 40
         
         lines = self._wrap_text(message.content, max_text_width)
         
-        for line in lines:
-            draw.text(
-                (text_x, text_y),
-                line,
-                fill=self._hex_to_rgb(self.COLORS['text']),
-                font=self.font_message
-            )
-            text_y += self.line_height
+        # Use Pilmoji for emoji rendering
+        with Pilmoji(img) as pilmoji:
+            for line in lines:
+                pilmoji.text(
+                    (text_x, text_y),
+                    line,
+                    fill=self._hex_to_rgb(self.COLORS['text']),
+                    font=self.font_message
+                )
+                text_y += self.line_height
         
-        # Draw reactions if any
+        # Draw reactions with EMOJI SUPPORT
         if message.reactions:
-            reaction_y = text_y + 4
+            reaction_y = text_y + 15
             reaction_x = text_x
             
             for reaction in message.reactions:
                 # Draw reaction bubble
-                reaction_text = reaction
-                bbox = draw.textbbox((0, 0), reaction_text, font=self.font_reaction)
-                bubble_width = bbox[2] - bbox[0] + 16
-                bubble_height = 24
+                bubble_width = 65
+                bubble_height = 50
                 
-                # Draw rounded rectangle for reaction
                 draw.rounded_rectangle(
                     [reaction_x, reaction_y, reaction_x + bubble_width, reaction_y + bubble_height],
-                    radius=12,
-                    fill=self._hex_to_rgb(self.COLORS['input_bg'])
+                    radius=25,
+                    fill=self._hex_to_rgb('#4f545c')
                 )
                 
-                draw.text(
-                    (reaction_x + 8, reaction_y + 4),
-                    reaction_text,
-                    fill=self._hex_to_rgb(self.COLORS['text']),
-                    font=self.font_reaction
-                )
+                # Draw emoji using Pilmoji for proper rendering
+                with Pilmoji(img) as pilmoji:
+                    pilmoji.text(
+                        (reaction_x + 15, reaction_y + 8),
+                        reaction,
+                        font=self.font_reaction
+                    )
                 
-                reaction_x += bubble_width + 6
+                reaction_x += bubble_width + 12
             
-            text_y = reaction_y + bubble_height + 8
+            text_y = reaction_y + bubble_height + 15
         
-        # Calculate total height
         height = text_y - y_position + self.message_spacing
-        
         return height
     
     def render_frame(
@@ -315,68 +301,65 @@ class DiscordRenderer:
         typing_indicator: bool = False,
         typing_user: Optional[str] = None
     ) -> Image.Image:
-        """
-        Render a conversation frame showing messages up to visible_count.
-        
-        Args:
-            messages: All messages in the conversation
-            visible_count: Number of messages to show (all if None)
-            typing_indicator: Whether to show typing indicator
-            typing_user: Username showing typing indicator
-        
-        Returns:
-            Rendered frame as PIL Image
-        """
+        """Render a conversation frame - Beluga style with limited visible messages."""
         if visible_count is None:
             visible_count = len(messages)
         
         visible_messages = messages[:visible_count]
         
+        # Only show last N messages for Beluga style (keeps it readable)
+        if len(visible_messages) > self.max_visible_messages:
+            visible_messages = visible_messages[-self.max_visible_messages:]
+        
         # Create base image
         img = Image.new('RGB', (self.width, self.height), self._hex_to_rgb(self.COLORS['background']))
         draw = ImageDraw.Draw(img)
         
-        # Calculate starting Y position (we want messages to appear from top-middle area)
-        # First, calculate total height needed
+        # Calculate total height needed
         total_height = 0
         message_heights = []
         last_user = None
         
-        for msg in visible_messages:
+        for i, msg in enumerate(visible_messages):
             show_avatar = msg.username != last_user
-            # Estimate height
-            lines = self._wrap_text(msg.content, self.width - self.padding * 2 - self.avatar_size - 32)
-            height = (24 if show_avatar else 0) + len(lines) * self.line_height
+            lines = self._wrap_text(msg.content, self.width - self.padding * 2 - self.avatar_size - 60)
+            height = (55 if show_avatar else 0) + len(lines) * self.line_height
             if msg.reactions:
-                height += 32
+                height += 75
             height += self.message_spacing
             message_heights.append((height, show_avatar))
             total_height += height
             last_user = msg.username
         
-        # Start from a position that centers the content vertically
-        y_position = max(100, (self.height - total_height) // 3)
+        # Position messages in the CENTER of the screen (Beluga style)
+        y_position = max(150, (self.height - total_height) // 2 - 100)
         
         # Draw messages
         last_user = None
         for i, msg in enumerate(visible_messages):
             show_avatar = msg.username != last_user
-            height = self._draw_message(draw, img, msg, y_position, show_avatar)
+            is_latest = (i == len(visible_messages) - 1)  # Highlight the newest message
+            height = self._draw_message(draw, img, msg, y_position, show_avatar, is_latest)
             y_position += height
             last_user = msg.username
         
-        # Draw typing indicator if requested
+        # Draw typing indicator
         if typing_indicator and typing_user:
-            y_position += 10
-            # Draw typing dots animation (static for single frame)
-            text_x = self.padding + self.avatar_size + 12
-            typing_text = f"{typing_user} is typing..."
+            y_position += 20
+            text_x = self.padding + self.avatar_size + 20
+            
+            # Draw typing animation dots
+            typing_text = f"{typing_user} is typing"
             draw.text(
                 (text_x, y_position),
                 typing_text,
                 fill=self._hex_to_rgb(self.COLORS['text_muted']),
                 font=self.font_timestamp
             )
+            
+            # Animated dots
+            dots_x = text_x + draw.textbbox((0, 0), typing_text, font=self.font_timestamp)[2] + 5
+            draw.text((dots_x, y_position), "...", fill=self._hex_to_rgb('#ffffff'), font=self.font_timestamp)
         
         return img
     
@@ -386,23 +369,13 @@ class DiscordRenderer:
         output_dir: str,
         include_typing: bool = True
     ) -> List[str]:
-        """
-        Render all frames for a story with progressive message reveal.
-        
-        Args:
-            story: Story to render
-            output_dir: Directory to save frames
-            include_typing: Whether to include typing indicator frames
-        
-        Returns:
-            List of paths to rendered frame images
-        """
+        """Render all frames for a story with progressive message reveal."""
         os.makedirs(output_dir, exist_ok=True)
         frame_paths = []
         frame_num = 0
         
         for i in range(1, len(story.messages) + 1):
-            # Optionally render typing indicator before each message
+            # Typing indicator before each message (except first)
             if include_typing and i > 1:
                 next_user = story.messages[i-1].username
                 typing_frame = self.render_frame(
@@ -426,59 +399,20 @@ class DiscordRenderer:
         return frame_paths
     
     def render_thumbnail(self, story: Story) -> Image.Image:
-        """
-        Render a thumbnail image for the video.
-        
-        Args:
-            story: Story to create thumbnail for
-        
-        Returns:
-            Thumbnail image
-        """
-        # Show first few messages for thumbnail
-        return self.render_frame(story.messages, visible_count=min(4, len(story.messages)))
+        """Render a thumbnail image for the video."""
+        return self.render_frame(story.messages, visible_count=min(3, len(story.messages)))
 
 
-# Example usage
 if __name__ == "__main__":
     from ..generators.story_generator import Story, Message
     
-    # Create test messages
     test_messages = [
-        Message(
-            username="ChaoticNeutral",
-            content="guys I need advice ASAP",
-            avatar_color="#f47fff",
-            reactions=[]
-        ),
-        Message(
-            username="ChaoticNeutral",
-            content="I accidentally sent my boss a meme instead of the quarterly report",
-            avatar_color="#f47fff",
-            reactions=["💀", "😂"]
-        ),
-        Message(
-            username="WorkplaceWarrior",
-            content="which meme was it",
-            avatar_color="#7289da",
-            reactions=[]
-        ),
-        Message(
-            username="ChaoticNeutral",
-            content="the one where the cat is on fire saying 'this is fine'",
-            avatar_color="#f47fff",
-            reactions=["💀", "😂", "🔥"]
-        ),
+        Message(username="ChaoticNeutral", content="guys I need advice ASAP", avatar_color="#f47fff"),
+        Message(username="ChaoticNeutral", content="I accidentally sent my boss a meme", avatar_color="#f47fff", reactions=["💀", "😂"]),
     ]
     
-    test_story = Story(
-        title="Test Story",
-        theme="workplace_chaos",
-        messages=test_messages
-    )
-    
+    test_story = Story(title="Test", theme="test", messages=test_messages)
     renderer = DiscordRenderer()
     frame = renderer.render_frame(test_messages)
     frame.save("test_frame.png")
-    print("Test frame saved to test_frame.png")
-
+    print("Test frame saved")

@@ -17,8 +17,8 @@ story:
     - "roommate_horror"
     - "family_dinner"
     - "online_dating"
-  min_messages: 8
-  max_messages: 15
+  min_messages: 6
+  max_messages: 10  # Fewer messages = bigger text, more readable
   humor_style: "absurd" # Options: absurd, sarcastic, wholesome, chaotic
 
 # Discord UI Settings
@@ -53,11 +53,11 @@ video:
 
 # Audio Settings
 audio:
-  background_music_volume: 0.15
-  sfx_volume: 0.3
+  background_music_volume: 0.2
+  sfx_volume: 0.7  # Louder notification sounds
   notification_sound: true
-  fade_in: 1.0 # seconds
-  fade_out: 2.0 # seconds
+  fade_in: 0.5 # seconds
+  fade_out: 1.0 # seconds
 
 # YouTube Upload Settings
 youtube:

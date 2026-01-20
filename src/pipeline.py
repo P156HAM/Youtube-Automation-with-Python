@@ -200,24 +200,28 @@ class Pipeline:
                 music_path = self.audio_mixer.get_random_music()
             
             audio_path = None
-            if music_path:
-                audio_output = self.tmp_dir / f"audio_{job.id}.mp3"
-                # Calculate SFX timestamps
-                sfx_timestamps = self.audio_mixer.calculate_sfx_timestamps(
-                    num_messages=len(story.messages),
-                    message_duration_ms=int(message_duration * 1000),
-                    typing_duration_ms=int(typing_duration * 1000)
-                )
-                
-                _, audio_path = self.audio_mixer.mix_for_video(
-                    duration_ms=total_duration_ms,
-                    music_path=music_path,
-                    sfx_timestamps_ms=sfx_timestamps if self.config.get('audio.notification_sound', True) else None,
-                    output_path=audio_output
-                )
-                print(f"   ✓ Audio prepared: {audio_path}")
+            audio_output = self.tmp_dir / f"audio_{job.id}.mp3"
+            
+            # Calculate SFX timestamps for notification sounds
+            sfx_timestamps = self.audio_mixer.calculate_sfx_timestamps(
+                num_messages=len(story.messages),
+                message_duration_ms=int(message_duration * 1000),
+                typing_duration_ms=int(typing_duration * 1000)
+            )
+            
+            # Create audio mix (with or without background music)
+            _, audio_path = self.audio_mixer.mix_for_video(
+                duration_ms=total_duration_ms,
+                music_path=music_path,  # Can be None
+                sfx_timestamps_ms=sfx_timestamps if self.config.get('audio.notification_sound', True) else None,
+                output_path=audio_output
+            )
+            
+            if audio_path:
+                has_music = "with music" if music_path else "notification sounds only"
+                print(f"   ✓ Audio prepared ({has_music})")
             else:
-                print("   ⚠ No background music found, proceeding without audio")
+                print("   ⚠ No audio (add music to assets/music/ or SFX to assets/sfx/)")
             
             # Step 4: Compose video
             print("\n🎬 Step 4: Composing video...")
