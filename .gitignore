@@ -50,3 +50,4 @@ renders/tmp/*
 # Logs
 *.log
 
+jobs/*.json
