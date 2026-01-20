@@ -1,0 +1,98 @@
+{
+  "id": "c8700979",
+  "theme": "AITA",
+  "status": "failed",
+  "story": {
+    "title": "AITA for Bringing My Pet Goldfish to a Wedding?",
+    "theme": "AITA",
+    "description": "Join the chaos as User1 reveals how they brought their pet goldfish to a wedding, and everyone has something to say about it! Spoiler: it gets wild.",
+    "tags": [
+      "AITA",
+      "funny",
+      "wedding",
+      "goldfish",
+      "drama"
+    ],
+    "messages": [
+      {
+        "username": "PetGoldfishGuy",
+        "content": "So, I brought my goldfish, Bubbles, to my friend's wedding. AITA for thinking she needed a date? \ud83d\udc20",
+        "avatar_color": "#f47fff",
+        "timestamp": null,
+        "reactions": [
+          "\ud83d\ude02",
+          "\ud83e\udd37\u200d\u2642\ufe0f"
+        ]
+      },
+      {
+        "username": "BridesmaidDramaQueen",
+        "content": "Wait, you brought a fish to a wedding?! What did you expect? A fishy dance-off? \ud83d\udd7a\ud83d\udc1f",
+        "avatar_color": "#7289da",
+        "timestamp": null,
+        "reactions": [
+          "\ud83d\udc80"
+        ]
+      },
+      {
+        "username": "MemeLord69",
+        "content": "Honestly, Bubbles was the best-dressed guest. Those sequins were on point! \u2728",
+        "avatar_color": "#43b581",
+        "timestamp": null,
+        "reactions": [
+          "\ud83d\ude02"
+        ]
+      },
+      {
+        "username": "PetGoldfishGuy",
+        "content": "I thought Bubbles would be a good icebreaker. Turns out she just freaked out during the vows! \ud83d\ude02",
+        "avatar_color": "#f47fff",
+        "timestamp": null,
+        "reactions": [
+          "\ud83d\ude33"
+        ]
+      },
+      {
+        "username": "BridesmaidDramaQueen",
+        "content": "Did Bubbles flop around during the 'I do's'? Because that\u2019s a strong statement! \ud83d\ude02",
+        "avatar_color": "#7289da",
+        "timestamp": null,
+        "reactions": []
+      },
+      {
+        "username": "PetGoldfishGuy",
+        "content": "She did! The priest had to dodge her cannonball splash! \ud83d\udca6",
+        "avatar_color": "#f47fff",
+        "timestamp": null,
+        "reactions": [
+          "\ud83d\udc80",
+          "\ud83e\udd23"
+        ]
+      },
+      {
+        "username": "WeddingPlannerWizard",
+        "content": "Honestly, I\u2019d hire you as a wedding entertainer. Bubbles the cannonball fish: a new trend! \ud83d\udc1f\ud83c\udf89",
+        "avatar_color": "#faa61a",
+        "timestamp": null,
+        "reactions": [
+          "\ud83d\ude02"
+        ]
+      },
+      {
+        "username": "PetGoldfishGuy",
+        "content": "AITA for literally making a splash at the wedding? Because I think I might be the hero here. \ud83d\ude02",
+        "avatar_color": "#f47fff",
+        "timestamp": null,
+        "reactions": [
+          "\ud83d\udc4f",
+          "\ud83e\udd14"
+        ]
+      }
+    ]
+  },
+  "video_path": null,
+  "thumbnail_path": null,
+  "youtube_id": null,
+  "error": "'Message' object has no attribute 'get'",
+  "created_at": "2026-01-20T10:58:55.186350",
+  "completed_at": null
+}

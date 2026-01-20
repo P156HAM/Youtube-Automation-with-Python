@@ -17,6 +17,15 @@ class AudioMixer:
     # Common audio formats to support
     SUPPORTED_FORMATS = ['.mp3', '.wav', '.ogg', '.m4a', '.flac']
     
+    # Keyword to sound effect mapping
+    # Keys are sound file names (without extension), values are keywords that trigger them
+    KEYWORD_SFX_MAP = {
+        'dramatic': ['💀', '☠️', 'dead', 'DEAD', 'died', 'DIED', 'kill', 'KILL'],
+        'laugh': ['😂', '😭', 'lmao', 'LMAO', 'lol', 'LOL', 'haha', 'HAHA', 'rofl'],
+        'gasp': ['OMG', 'omg', 'WTF', 'wtf', '???', '!!!', 'shocked', 'SHOCKED'],
+        'vine_boom': ['bruh', 'BRUH', 'BRO', 'bro', 'NAH', 'nah', 'sus', 'SUS'],
+    }
+    
     def __init__(self):
         """Initialize the audio mixer."""
         self.config = get_config()
@@ -24,6 +33,7 @@ class AudioMixer:
         self.sfx_volume = self.config.get('audio.sfx_volume', 0.3)
         self.fade_in = self.config.get('audio.fade_in', 1.0)
         self.fade_out = self.config.get('audio.fade_out', 2.0)
+        self._sfx_cache = {}  # Cache loaded sound effects
     
     def _db_from_ratio(self, ratio: float) -> float:
         """Convert volume ratio (0-1) to decibels."""
@@ -83,6 +93,43 @@ class AudioMixer:
         if sfx_files:
             return sfx_files[0]
         
+        return None
+    
+    def get_keyword_sfx(self, sfx_name: str) -> Optional[Path]:
+        """
+        Get a specific sound effect file by name.
+        
+        Args:
+            sfx_name: Name of the sound effect (e.g., 'dramatic', 'laugh')
+        
+        Returns:
+            Path to the sound effect file or None
+        """
+        sfx_dir = self.config.get_path('sfx')
+        
+        for ext in self.SUPPORTED_FORMATS:
+            path = sfx_dir / f'{sfx_name}{ext}'
+            if path.exists():
+                return path
+        
+        return None
+    
+    def detect_keyword_sfx(self, message_text: str) -> Optional[str]:
+        """
+        Detect if a message contains keywords that trigger special SFX.
+        
+        Args:
+            message_text: The message content to check
+        
+        Returns:
+            Name of SFX to play, or None if no keywords found
+        """
+        for sfx_name, keywords in self.KEYWORD_SFX_MAP.items():
+            for keyword in keywords:
+                if keyword in message_text:
+                    # Check if we have this sound file
+                    if self.get_keyword_sfx(sfx_name):
+                        return sfx_name
         return None
     
     def load_audio(self, path: Union[str, Path]) -> AudioSegment:
@@ -180,6 +227,65 @@ class AudioMixer:
         
         return combined
     
+    def create_keyword_sfx_track(
+        self,
+        messages: List[dict],
+        message_timestamps_ms: List[int],
+        total_duration_ms: int,
+        volume: Optional[float] = None
+    ) -> Optional[AudioSegment]:
+        """
+        Create a sound effects track with dramatic sounds based on message keywords.
+        
+        Args:
+            messages: List of message dicts with 'content' field
+            message_timestamps_ms: Timestamps when each message appears (in ms)
+            total_duration_ms: Total duration of the track
+            volume: Volume level (0-1)
+        
+        Returns:
+            Audio segment with keyword SFX, or None if no keywords found
+        """
+        volume = volume if volume is not None else self.sfx_volume
+        volume_db = self._db_from_ratio(volume)
+        
+        # Create silent base track
+        combined = AudioSegment.silent(duration=total_duration_ms)
+        has_sfx = False
+        
+        # Check each message for keywords
+        for i, msg in enumerate(messages):
+            if i >= len(message_timestamps_ms):
+                break
+            
+            # Handle both dict and Message objects
+            if hasattr(msg, 'content'):
+                content = msg.content
+            else:
+                content = msg.get('content', '')
+            
+            sfx_name = self.detect_keyword_sfx(content)
+            
+            if sfx_name:
+                sfx_path = self.get_keyword_sfx(sfx_name)
+                if sfx_path:
+                    # Load and cache the SFX
+                    if sfx_name not in self._sfx_cache:
+                        sfx = self.load_audio(sfx_path)
+                        sfx = sfx + volume_db
+                        self._sfx_cache[sfx_name] = sfx
+                    else:
+                        sfx = self._sfx_cache[sfx_name]
+                    
+                    # Overlay at message timestamp (slight delay for effect)
+                    ts = message_timestamps_ms[i] + 200  # 200ms delay
+                    if ts < total_duration_ms:
+                        combined = combined.overlay(sfx, position=ts)
+                        has_sfx = True
+                        print(f"  🔊 Adding '{sfx_name}' sound at {ts}ms for: {content[:30]}...")
+        
+        return combined if has_sfx else None
+    
     def mix_tracks(
         self,
         tracks: List[AudioSegment],
@@ -220,6 +326,7 @@ class AudioMixer:
         duration_ms: int,
         music_path: Optional[Union[str, Path]] = None,
         sfx_timestamps_ms: Optional[List[int]] = None,
+        messages: Optional[List[dict]] = None,
         output_path: Optional[Union[str, Path]] = None
     ) -> Tuple[AudioSegment, Optional[str]]:
         """
@@ -229,6 +336,7 @@ class AudioMixer:
             duration_ms: Video duration in milliseconds
             music_path: Path to background music (uses random if None)
             sfx_timestamps_ms: Timestamps for notification sounds
+            messages: List of message dicts for keyword-based SFX
             output_path: Optional path to save the mixed audio
         
         Returns:
@@ -254,6 +362,16 @@ class AudioMixer:
                     duration_ms
                 )
                 tracks.append(sfx_track)
+        
+        # Add keyword-based dramatic sounds
+        if messages and sfx_timestamps_ms and self.config.get('audio.keyword_sfx', True):
+            keyword_track = self.create_keyword_sfx_track(
+                messages,
+                sfx_timestamps_ms,
+                duration_ms
+            )
+            if keyword_track:
+                tracks.append(keyword_track)
         
         # Mix everything together
         if tracks:

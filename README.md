@@ -8,4 +8,5 @@ Automated AI workflow that creates funny Discord-style conversation videos and p
 - **Discord UI Rendering**: Generates realistic Discord dark theme conversation frames
 - **Video Composition**: Creates YouTube Shorts (9:16 vertical format) with animations
 - **Audio Mixing**: Adds background music and optional notification sounds
+- **Reddit trending topics**: Automatic fetch of the must trending topics on Reddit
 - **YouTube Upload**: Automatic upload with metadata and thumbnail

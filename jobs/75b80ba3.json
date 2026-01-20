@@ -1,0 +1,104 @@
+{
+  "id": "75b80ba3",
+  "theme": "AITA",
+  "status": "completed",
+  "story": {
+    "title": "AITA for Stealing My Neighbor's WiFi... with a Llama?",
+    "theme": "AITA",
+    "description": "In this hilarious tale, someone questions their sanity after using a llama to 'borrow' their neighbor's WiFi. The absurdity unfolds in a way you won\u2019t believe!",
+    "tags": [
+      "AITA",
+      "WiFi",
+      "Llama",
+      "Comedy",
+      "Ridiculous"
+    ],
+    "messages": [
+      {
+        "username": "LlamaDramaQueen",
+        "content": "So, I kinda used a llama to steal my neighbor's WiFi. AITA?",
+        "avatar_color": "#f47fff",
+        "timestamp": null,
+        "reactions": [
+          "\ud83d\ude33",
+          "\ud83d\ude02"
+        ]
+      },
+      {
+        "username": "PunnyBunny69",
+        "content": "Did you at least name the llama 'Llama Llama Ding Dong'? \ud83d\ude02",
+        "avatar_color": "#7289da",
+        "timestamp": null,
+        "reactions": []
+      },
+      {
+        "username": "LlamaDramaQueen",
+        "content": "Of course! He\u2019s my WiFi buddy now. But the neighbor caught me and freaked out. \ud83d\ude2c",
+        "avatar_color": "#f47fff",
+        "timestamp": null,
+        "reactions": [
+          "\ud83d\udc80"
+        ]
+      },
+      {
+        "username": "SassyCatLady",
+        "content": "Wait, your neighbor has a llama-proof fence? How do you even plan that? \ud83d\ude02",
+        "avatar_color": "#43b581",
+        "timestamp": null,
+        "reactions": []
+      },
+      {
+        "username": "LlamaDramaQueen",
+        "content": "I thought llamas were like furry ninjas. Turns out, they just want to eat grass and stare at you. \ud83d\ude44",
+        "avatar_color": "#f47fff",
+        "timestamp": null,
+        "reactions": [
+          "\ud83e\udd23"
+        ]
+      },
+      {
+        "username": "NoMoreDrama",
+        "content": "What did your neighbor say when they caught you? Did you blame it on the llama? \ud83d\ude02",
+        "avatar_color": "#faa61a",
+        "timestamp": null,
+        "reactions": []
+      },
+      {
+        "username": "LlamaDramaQueen",
+        "content": "Exactly! I said, 'It wasn\u2019t me, it was the llama!' They looked confused af. \ud83d\ude06",
+        "avatar_color": "#f47fff",
+        "timestamp": null,
+        "reactions": []
+      },
+      {
+        "username": "PunnyBunny69",
+        "content": "How did you even explain that at the police station? 'Uh, officer, my llama has a better connection.' \ud83e\udd23",
+        "avatar_color": "#7289da",
+        "timestamp": null,
+        "reactions": []
+      },
+      {
+        "username": "SassyCatLady",
+        "content": "And what if they start a neighborhood llama squad? Prepare for a turf war! \ud83d\ude02",
+        "avatar_color": "#43b581",
+        "timestamp": null,
+        "reactions": []
+      },
+      {
+        "username": "LlamaDramaQueen",
+        "content": "Honestly, I'd join the squad. But I\u2019d make it clear: my llama gets the good WiFi. \ud83d\ude1c",
+        "avatar_color": "#f47fff",
+        "timestamp": null,
+        "reactions": [
+          "\ud83c\udf89"
+        ]
+      }
+    ]
+  },
+  "video_path": "/Users/hamdi/Desktop/Youtube_automation/renders/final/75b80ba3_AITA_20260120_110003.mp4",
+  "thumbnail_path": "/Users/hamdi/Desktop/Youtube_automation/renders/final/75b80ba3_thumbnail.png",
+  "youtube_id": null,
+  "error": null,
+  "created_at": "2026-01-20T10:59:42.180832",
+  "completed_at": "2026-01-20T11:00:55.981549"
+}

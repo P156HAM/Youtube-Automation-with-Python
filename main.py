@@ -138,6 +138,8 @@ Available themes:
                         help='Upload video to YouTube after creation')
     parser.add_argument('--theme', '-t',
                         help='Story theme (AITA, workplace_chaos, etc.)')
+    parser.add_argument('--trending', action='store_true',
+                        help='Use trending Reddit topic for the story')
     parser.add_argument('--batch', '-b', type=int,
                         help='Create multiple videos')
     parser.add_argument('--list', '-l', action='store_true',
@@ -205,7 +207,8 @@ Available themes:
         job = pipeline.run(
             theme=args.theme,
             upload=args.upload,
-            music_path=args.music
+            music_path=args.music,
+            use_trending=args.trending
         )
         
         print(f"\n✅ Complete!")

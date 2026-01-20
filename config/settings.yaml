@@ -56,6 +56,7 @@ audio:
   background_music_volume: 0.2
   sfx_volume: 0.7 # Louder notification sounds
   notification_sound: true
+  keyword_sfx: true # Play dramatic sounds on keywords (💀, bruh, OMG, etc.)
   fade_in: 0.5 # seconds
   fade_out: 1.0 # seconds
 

@@ -1,0 +1,85 @@
+{
+  "id": "f0fa07b8",
+  "theme": "AITA",
+  "status": "completed",
+  "story": {
+    "title": "AITA for turning my neighbor's lawn into a petting zoo?",
+    "theme": "AITA",
+    "description": "You won't believe what this person did over a lawn war! Was it justified or did they lose it completely? FIND OUT!",
+    "tags": [
+      "discord",
+      "drama",
+      "funny",
+      "viral",
+      "shorts"
+    ],
+    "messages": [
+      {
+        "username": "LawnMowerMadness",
+        "content": "OMG, so I put a goat on my neighbor's lawn as revenge \ud83d\ude02",
+        "avatar_color": "#f47fff",
+        "timestamp": null,
+        "reactions": [
+          "\ud83d\ude02",
+          "\ud83d\udc80"
+        ]
+      },
+      {
+        "username": "DefinitelyNotSus",
+        "content": "NAH, are you serious?! What did they do to you? \ud83d\ude33",
+        "avatar_color": "#7289da",
+        "timestamp": null,
+        "reactions": [
+          "WHAT",
+          "\ud83d\udc80"
+        ]
+      },
+      {
+        "username": "ChaosGremlin",
+        "content": "They mowed your grass wrong, right? \ud83d\udc80",
+        "avatar_color": "#43b581",
+        "timestamp": null,
+        "reactions": [
+          "\ud83d\ude2d",
+          "\ud83d\ude02"
+        ]
+      },
+      {
+        "username": "LawnMowerMadness",
+        "content": "Nah, bro, they called my plants 'weeds'! I couldn't let that slide! \ud83d\ude24",
+        "avatar_color": "#f47fff",
+        "timestamp": null,
+        "reactions": [
+          "WTF",
+          "\ud83d\udc80"
+        ]
+      },
+      {
+        "username": "BruhMoment2024",
+        "content": "So you unleashed a goat? That's LEGENDARY \ud83d\ude02",
+        "avatar_color": "#faa61a",
+        "timestamp": null,
+        "reactions": [
+          "\ud83d\ude02",
+          "\ud83d\udc80"
+        ]
+      },
+      {
+        "username": "LawnMowerMadness",
+        "content": "And now the goat has a viral TikTok... AITA for being a GOAT owner? \ud83d\udc10\ud83d\udc80",
+        "avatar_color": "#f47fff",
+        "timestamp": null,
+        "reactions": [
+          "OMG",
+          "\ud83d\udc80"
+        ]
+      }
+    ]
+  },
+  "video_path": "/Users/hamdi/Desktop/Youtube_automation/renders/final/f0fa07b8_AITA_20260120_112626.mp4",
+  "thumbnail_path": "/Users/hamdi/Desktop/Youtube_automation/renders/final/f0fa07b8_thumbnail.png",
+  "youtube_id": null,
+  "error": null,
+  "created_at": "2026-01-20T11:26:06.425189",
+  "completed_at": "2026-01-20T11:26:59.286446"
+}

@@ -12,6 +12,7 @@ from typing import Any, Dict, List, Optional
 from .audio.mixer import AudioMixer
 from .config import get_config
 from .generators.story_generator import Story, StoryGenerator
+from .generators.reddit_trends import RedditTrendsFetcher, RedditTopic
 from .renderers.discord_renderer import DiscordRenderer
 from .uploaders.youtube_uploader import YouTubeUploader
 from .video.composer import VideoComposer
@@ -112,6 +113,7 @@ class Pipeline:
         self.composer = VideoComposer()
         self.audio_mixer = AudioMixer()
         self.uploader = YouTubeUploader()
+        self.reddit_fetcher = RedditTrendsFetcher()
         
         # Directories
         self.jobs_dir = self.config.get_path('jobs')
@@ -144,7 +146,8 @@ class Pipeline:
         self,
         job: PipelineJob,
         upload: bool = True,
-        music_path: Optional[str] = None
+        music_path: Optional[str] = None,
+        use_trending: bool = False
     ) -> PipelineJob:
         """
         Execute a complete pipeline job.
@@ -153,6 +156,7 @@ class Pipeline:
             job: Job to execute
             upload: Whether to upload to YouTube
             music_path: Optional specific music track to use
+            use_trending: Whether to fetch and use a trending Reddit topic
         
         Returns:
             Updated job with results
@@ -162,11 +166,25 @@ class Pipeline:
             print(f"Starting job: {job.id}")
             print(f"{'='*50}")
             
+            # Fetch trending topic if requested
+            trending_topic = None
+            if use_trending:
+                print("\n🔥 Fetching trending Reddit topic...")
+                trending_topic = self.reddit_fetcher.get_random_trending()
+                if trending_topic:
+                    print(f"   ✓ Using: \"{trending_topic.title[:50]}...\"")
+                    print(f"   ✓ From: r/{trending_topic.subreddit} ({trending_topic.score} upvotes)")
+                else:
+                    print("   ⚠ Could not fetch trends, using random theme")
+            
             # Step 1: Generate story
             print("\n📝 Step 1: Generating story...")
             self._update_job(job, JobStatus.GENERATING_STORY)
             
-            story = self.story_generator.generate(theme=job.theme)
+            story = self.story_generator.generate(
+                theme=job.theme,
+                trending_topic=trending_topic
+            )
             job.story = story
             print(f"   ✓ Generated: '{story.title}'")
             print(f"   ✓ Theme: {story.theme}")
@@ -214,6 +232,7 @@ class Pipeline:
                 duration_ms=total_duration_ms,
                 music_path=music_path,  # Can be None
                 sfx_timestamps_ms=sfx_timestamps if self.config.get('audio.notification_sound', True) else None,
+                messages=story.messages,  # For keyword-based SFX
                 output_path=audio_output
             )
             
@@ -302,7 +321,8 @@ class Pipeline:
         self,
         theme: Optional[str] = None,
         upload: bool = True,
-        music_path: Optional[str] = None
+        music_path: Optional[str] = None,
+        use_trending: bool = False
     ) -> PipelineJob:
         """
         Run a complete pipeline cycle from start to finish.
@@ -311,12 +331,13 @@ class Pipeline:
             theme: Story theme (random if None)
             upload: Whether to upload to YouTube
             music_path: Optional specific music track
+            use_trending: Whether to use trending Reddit topics
         
         Returns:
             Completed job
         """
         job = self.create_job(theme=theme)
-        return self.run_job(job, upload=upload, music_path=music_path)
+        return self.run_job(job, upload=upload, music_path=music_path, use_trending=use_trending)
     
     def run_batch(
         self,

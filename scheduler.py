@@ -30,12 +30,13 @@ from src.config import get_config
 class Scheduler:
     """Automated scheduler for YouTube Shorts generation and upload."""
     
-    def __init__(self):
+    def __init__(self, use_trending: bool = False):
         self.pipeline = Pipeline()
         self.config = get_config()
         self.running = True
         self.videos_uploaded_today = 0
         self.last_reset_date = datetime.now().date()
+        self.use_trending = use_trending
         
         # Handle graceful shutdown
         signal.signal(signal.SIGINT, self._handle_shutdown)
@@ -63,9 +64,17 @@ class Scheduler:
         """Run a single video generation and upload cycle."""
         try:
             theme = self._get_random_theme()
-            self._log(f"🎬 Starting video generation (theme: {theme})")
             
-            job = self.pipeline.run(theme=theme, upload=True)
+            if self.use_trending:
+                self._log(f"🎬 Starting video generation (using TRENDING topic)")
+            else:
+                self._log(f"🎬 Starting video generation (theme: {theme})")
+            
+            job = self.pipeline.run(
+                theme=theme, 
+                upload=True,
+                use_trending=self.use_trending
+            )
             
             if job.youtube_id:
                 self._log(f"✅ Video uploaded: https://youtube.com/shorts/{job.youtube_id}")
@@ -244,10 +253,12 @@ Examples:
                         help='Specific times to upload (comma-separated, e.g., 09:00,15:00,21:00)')
     parser.add_argument('--once', action='store_true',
                         help='Run once and exit')
+    parser.add_argument('--trending', action='store_true',
+                        help='Use trending Reddit topics for stories')
     
     args = parser.parse_args()
     
-    scheduler = Scheduler()
+    scheduler = Scheduler(use_trending=args.trending)
     
     if args.once:
         scheduler.run_once()

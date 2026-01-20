@@ -3,11 +3,14 @@
 import json
 import random
 from dataclasses import dataclass, field
-from typing import List, Optional
+from typing import List, Optional, TYPE_CHECKING
 
 from openai import OpenAI
 
 from ..config import get_config
+
+if TYPE_CHECKING:
+    from .reddit_trends import RedditTopic
 
 
 @dataclass
@@ -85,12 +88,12 @@ class StoryGenerator:
     """Generates funny Reddit-style Discord conversation stories using GPT-4."""
     
     THEME_PROMPTS = {
-        'AITA': "Am I The A**hole - Someone asks if they were wrong in a ridiculous situation",
-        'relationship_drama': "Wild relationship stories with unexpected twists",
-        'workplace_chaos': "Absurd workplace situations and coworker drama",
-        'roommate_horror': "Nightmare roommate situations that escalate hilariously",
-        'family_dinner': "Family gatherings that go completely off the rails",
-        'online_dating': "Dating app conversations that take unexpected turns",
+        'AITA': "AITA drama - Someone did something UNHINGED and asks if they're wrong. Plot twist: they're either completely justified or absolutely insane",
+        'relationship_drama': "Relationship chaos - Partner did something wild. Betrayal, plot twists, and dramatic reveals",
+        'workplace_chaos': "Work drama - Boss/coworker is UNHINGED. Absurd requests, toxic behavior, satisfying clap-backs",
+        'roommate_horror': "Roommate nightmares - They did WHAT?! Escalating insanity, boundary violations, petty revenge",
+        'family_dinner': "Family roast session - Holiday dinner goes OFF THE RAILS. Secrets exposed, drama unleashed",
+        'online_dating': "Dating app HORROR - Match reveals red flags. Creepy, cringe, or chaotic energy",
     }
     
     def __init__(self):
@@ -103,61 +106,76 @@ class StoryGenerator:
     
     def _get_system_prompt(self) -> str:
         """Get the system prompt for story generation."""
-        return """You are a comedy writer who creates viral Discord conversation stories in the style of popular Reddit posts. Your stories should be:
+        return """You are a Gen-Z comedy writer creating UNHINGED viral Discord conversations like Beluga or Reddit drama channels. Your style is CHAOTIC, DRAMATIC, and MEME-HEAVY.
 
-1. FUNNY - Use absurd situations, unexpected twists, and comedic timing
-2. RELATABLE - Based on real-life situations people recognize
-3. ENGAGING - Each message should make the reader want to see the next one
-4. CONCISE - Messages should be short and punchy (1-3 sentences max per message)
-5. NATURAL - Sound like real Discord conversations with casual language, typos, and reactions
+VIBE CHECK - Your stories MUST be:
+1. UNHINGED - Go wild. Absurd escalations, chaotic energy, unexpected turns
+2. MEME BRAIN - Use internet slang naturally: "bruh", "nah", "fr fr", "ong", "lowkey", "no cap"
+3. DRAMATIC AF - Big reactions to everything. Nothing is chill. Everything is INSANE
+4. EMOJI CHAOS - Characters react with 💀😂😭🗿 when shocked/dying of laughter
+5. SHORT & PUNCHY - Messages are quick hits, not essays. Max 1-2 sentences
 
-Characters should have distinct personalities and funny usernames. Include moments of:
-- Dramatic reveals
-- Unexpected plot twists
-- Comedic misunderstandings
-- Satisfying conclusions or cliffhangers
+MANDATORY LANGUAGE TO USE NATURALLY:
+- "bruh" / "BRO" when shocked
+- "💀" or "I'm dead" when something's too funny
+- "WHAT" / "WTF" / "???" for disbelief
+- "nah" / "NAH" when rejecting something crazy
+- "lmao" / "😂" for laughing
+- "OMG" for dramatic moments
+- "sus" when something's sketchy
 
-Output your response as valid JSON only, no other text."""
+TONE: Sassy, chaotic, unfiltered. Characters can roast each other. Be edgy (but not offensive). Think Twitter/Discord drama energy.
+
+Output ONLY valid JSON, nothing else."""
 
     def _get_generation_prompt(self, theme: str, num_messages: int) -> str:
         """Get the user prompt for generating a specific story."""
         theme_description = self.THEME_PROMPTS.get(theme, theme)
         
-        return f"""Generate a funny Discord conversation story with the following requirements:
+        return f"""Generate an UNHINGED Discord conversation story:
 
 THEME: {theme_description}
-NUMBER OF MESSAGES: {num_messages}
+MESSAGES: {num_messages}
 
-Create a JSON object with this exact structure:
+JSON structure:
 {{
-    "title": "A catchy, clickbait-style title for the story",
+    "title": "Clickbait title with drama/shock factor",
     "theme": "{theme}",
-    "description": "A brief description for YouTube (2-3 sentences)",
-    "tags": ["tag1", "tag2", "tag3", "tag4", "tag5"],
+    "description": "Brief YouTube description (2-3 sentences)",
+    "tags": ["discord", "drama", "funny", "viral", "shorts"],
     "messages": [
         {{
-            "username": "FunnyUsername123",
-            "content": "The message content",
-            "reactions": ["😂", "💀"]  // Optional, can be empty array
-        }},
-        // ... more messages
+            "username": "ChaoticUsername",
+            "content": "bruh WHAT 💀",
+            "reactions": ["💀", "😂"]
+        }}
     ]
 }}
 
-Requirements:
-- Use 2-4 different characters with creative Discord-style usernames
-- Messages should be SHORT (under 200 characters each)
-- Include appropriate emoji reactions on key messages (not every message)
-- Make it ACTUALLY funny with good comedic timing
-- The story should have a clear beginning, middle, and end
-- End with a punchline or satisfying conclusion
+REQUIREMENTS:
+- 2-4 characters with unhinged usernames (ex: ChaosGremlin, DefinitelyNotSus, BruhMoment2024)
+- Messages are SHORT and PUNCHY (under 150 chars)
+- USE THESE NATURALLY: bruh, 💀, nah, WHAT, lmao, OMG, WTF, sus, I'm dead
+- Reactions on dramatic moments: 💀 😂 😭 🗿 💀
+- ESCALATE the chaos - each message raises stakes
+- End with a punchline that HITS
 
-Return ONLY the JSON, no other text or markdown."""
+EXAMPLE VIBE:
+User1: "so my roommate ate my leftover pizza"
+User2: "that's annoying but not that bad?"
+User1: "it was in a locked safe"
+User2: "WHAT"
+User1: "he learned safecracking for this"
+User3: "bruh 💀"
+User2: "I'm actually dead rn"
+
+Return ONLY JSON. GO CRAZY."""
 
     def generate(
         self,
         theme: Optional[str] = None,
-        num_messages: Optional[int] = None
+        num_messages: Optional[int] = None,
+        trending_topic: Optional['RedditTopic'] = None
     ) -> Story:
         """
         Generate a new story.
@@ -165,10 +183,17 @@ Return ONLY the JSON, no other text or markdown."""
         Args:
             theme: Story theme (random if not specified)
             num_messages: Number of messages (random within config limits if not specified)
+            trending_topic: Optional Reddit topic to base the story on
         
         Returns:
             Generated Story object
         """
+        # If we have a trending topic, use its theme
+        if trending_topic:
+            from .reddit_trends import RedditTrendsFetcher
+            fetcher = RedditTrendsFetcher()
+            theme = fetcher.get_theme_for_topic(trending_topic)
+        
         # Select random theme if not specified
         if theme is None:
             themes = self.config.get('story.themes', list(self.THEME_PROMPTS.keys()))
@@ -183,6 +208,16 @@ Return ONLY the JSON, no other text or markdown."""
         # Generate story using OpenAI
         model = self.config.openai_model
         
+        # Build the user prompt
+        user_prompt = self._get_generation_prompt(theme, num_messages)
+        
+        # Add trending topic context if provided
+        if trending_topic:
+            from .reddit_trends import RedditTrendsFetcher
+            fetcher = RedditTrendsFetcher()
+            topic_prompt = fetcher.topic_to_story_prompt(trending_topic)
+            user_prompt = f"{topic_prompt}\n\n{user_prompt}"
+        
         # Models that support JSON response format
         json_supported_models = ['gpt-4o', 'gpt-4o-mini', 'gpt-4-turbo', 'gpt-4-turbo-preview', 
                                   'gpt-3.5-turbo-1106', 'gpt-3.5-turbo-0125']
@@ -191,7 +226,7 @@ Return ONLY the JSON, no other text or markdown."""
             "model": model,
             "messages": [
                 {"role": "system", "content": self._get_system_prompt()},
-                {"role": "user", "content": self._get_generation_prompt(theme, num_messages)}
+                {"role": "user", "content": user_prompt}
             ],
             "max_tokens": self.config.get('openai.max_tokens', 2000),
             "temperature": self.config.get('openai.temperature', 0.8),
