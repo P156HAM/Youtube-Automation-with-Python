@@ -289,14 +289,14 @@ class AudioMixer:
     def mix_tracks(
         self,
         tracks: List[AudioSegment],
-        normalize_output: bool = True
+        normalize_output: bool = False  # Disabled by default - very slow!
     ) -> AudioSegment:
         """
         Mix multiple audio tracks together.
         
         Args:
             tracks: List of audio segments to mix
-            normalize_output: Whether to normalize the final mix
+            normalize_output: Whether to normalize the final mix (SLOW - disabled by default)
         
         Returns:
             Mixed audio segment
@@ -309,14 +309,15 @@ class AudioMixer:
         mixed = tracks[0]
         
         # Overlay remaining tracks
-        for track in tracks[1:]:
+        for i, track in enumerate(tracks[1:], 1):
             # Pad shorter tracks with silence
             if len(track) < len(mixed):
                 track = track + AudioSegment.silent(duration=len(mixed) - len(track))
             mixed = mixed.overlay(track)
         
-        # Normalize if requested
+        # Normalize if requested (WARNING: This is very slow for long audio!)
         if normalize_output:
+            print("  ⚠ Normalizing audio (this may take a while)...")
             mixed = normalize(mixed)
         
         return mixed
@@ -375,7 +376,10 @@ class AudioMixer:
         
         # Mix everything together
         if tracks:
-            mixed = self.mix_tracks(tracks)
+            print(f"  📊 Mixing {len(tracks)} audio track(s)...")
+            # Disable normalization by default - it's very slow
+            normalize = self.config.get('audio.normalize', False)
+            mixed = self.mix_tracks(tracks, normalize_output=normalize)
         else:
             # Return silence if no tracks
             mixed = AudioSegment.silent(duration=duration_ms)
@@ -385,6 +389,7 @@ class AudioMixer:
         if output_path:
             output_path = Path(output_path)
             output_format = output_path.suffix.lstrip('.') or 'mp3'
+            print(f"  💾 Exporting audio to {output_path.name}...")
             mixed.export(str(output_path), format=output_format)
             saved_path = str(output_path)
         

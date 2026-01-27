@@ -44,10 +44,14 @@ ENV/
 renders/tmp/*
 !renders/tmp/.gitkeep
 
-# Jobs (optional - uncomment if you want to track jobs)
-# jobs/*.json
+# Rendered videos and thumbnails
+renders/final/*
+!renders/final/.gitkeep
+
+# Job files
+jobs/*.json
+!jobs/.gitkeep
 
 # Logs
 *.log
 
-jobs/*.json
